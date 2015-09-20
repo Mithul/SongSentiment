@@ -1,0 +1,14 @@
+#player{
+	width: 300px;
+  	margin: 0 auto;
+  	display: block;
+}
+#clock{
+	width: 460px;
+	margin: 20px auto;
+  	display: block;
+}
+#score{
+	text-align: center;
+	font-size: 48px;
+}

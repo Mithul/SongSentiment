@@ -1,0 +1,85 @@
+<%= simple_form_for(@classification) do |f| %>
+  <%= f.error_notification %>
+
+  <div class="form-inputs">
+    <div class="row">
+      <div class="col-md-3">
+        <%= f.input :artist %>
+      </div>
+      <div class="col-md-3">
+        <%= f.input :song_name %>
+      </div>
+      <div class="col-md-3">
+        <div class="hidden">
+          <%= f.input :sentiment %>
+        </div>
+        <div id="sentiment_smiley"></div>
+      </div>
+      <div class="col-md-3">
+        <%= f.input :genre %>
+      </div>
+      <div class="col-xs-12">
+        <%= f.input :lyric_link %>
+      </div>
+        <%# f.association :user %>
+    </div>
+    <div class="row">
+      <div class="col-xs-12">
+        <div class="hidden">
+          <%= f.input :rating %>
+        </div>
+        <div id="raty"></div>
+        <div id="div1"></div>
+        
+      </div>
+    </div>
+  </div>
+
+  <div class="form-actions">
+    <%= f.button :submit %>
+  </div>
+<% end %>
+
+
+
+<script type="text/javascript">
+          $('#raty').raty({
+            starOff : '<%= image_url 'star-off-big.png' %>',
+            starOn  : '<%= image_url 'star-on1.png' %>',
+            targetKeep : true,
+            hints : null,
+            target : '#classification_rating'
+          });
+          off = '<%= image_url 'star-off-big.png' %>';
+          $('#sentiment_smiley').raty({
+            starOff : '<%= image_url 'star-off-big.png' %>',
+            starOn  : '<%= image_url 'star-on1.png' %>',
+            iconRange: [
+              { range: 1, on: '<%= image_url 'sad-emoticon.png' %>', off: off },
+              { range: 2, on: '<%= image_url 'confused.png' %>', off: off },
+              { range: 3, on: '<%= image_url 'happy.jpg' %>', off: off },
+            ],
+            number: 3,
+            targetKeep : true,
+            hints: ['Negative','Ambiguous','Positive'],
+            target : '#classification_rating'
+          });
+
+          function get_lyric(){
+            song = $('#classification_song_name').val();
+            artist = $('#classification_artist').val();
+            data = {song: song, artist: artist};
+            if( $('#classification_lyric_link').val().length === 0 && song.length > 0 && artist.length > 0){
+              $.ajax({url: "/lyrics_get",data: data, success: function(result){
+                  // $("#div1").html(result);
+                  console.log(result);
+                  $('#classification_lyric_link').val(result.link);
+              },failure: function(result){
+                console.log(result);
+              }});
+            }
+          }
+
+          $("input").blur(get_lyric);
+
+        </script>

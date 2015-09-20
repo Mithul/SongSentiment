@@ -1,0 +1,270 @@
+
+<%# @song.link %>
+<br>
+<div class="row">
+	<div class="col-sm-6">
+		<div class="row">
+			<audio controls autoplay id="player" onplay="play_start()">
+				<source src="<%= @song.link %>" type="audio/mp3">
+			</audio>
+		</div>
+		<div class="row">
+			<div id="clock"></div>
+		</div>
+		<div class="row">
+			<div id="score">Score: <span class="content"></span></div>
+		</div>
+	</div>
+	<div class="col-sm-6">
+		<%= simple_form_for(@classification) do |f| %>
+			<%= f.error_notification %>
+			<div class="form-inputs">
+				<div class="row">
+					<div class="col-md-6">
+						<%= f.input :artist, label: 'Guess the artist?', required: true  %>
+					</div>
+					<div class="col-md-6">
+						<%= f.input :song_name, label: 'Guess the song?', required: true %>
+					</div>
+					<div class="col-md-6">
+						<div class="hidden">
+							<%= f.input :sentiment, required: true %>
+						</div>
+						<div id="sentiment_smiley"></div>
+					</div>
+					<div class="col-md-6">
+						<%= f.input :genre, label: 'What is the genre of the song?' %>
+					</div>
+					<div class="col-xs-12">
+						<%= f.input :lyric_link , label: false, placeholder: 'Please provide the link to the lyrics from azlyrics.com :)' %>
+					</div>
+					<%# f.association :user %>
+				</div>
+				<div class="row">
+					<div class="col-xs-12">
+						<div class="hidden">
+							<%= f.input :rating %>
+						</div>
+						<button class="btn btn-warning" id="give_up">Give up?</button>
+						<%= f.button :submit, 'Save', class: 'btn btn-success' %>
+						<p>You may have to submit twice if the lyrics were not detected automatically.</p>
+						<!-- <div id="raty"></div> -->
+						<!-- <div id="div1"></div> -->
+
+					</div>
+				</div>
+			</div>
+
+			<div class="form-actions hidden1">
+				<div class="row">
+
+				</div>
+			</div>
+		<% end %>
+
+
+		<script type="text/javascript">
+
+			var correct_song = false;
+			var given_up = false;
+			var link_sucess = false;
+
+			$('#raty').raty({
+				starOff : '<%= image_url 'star-off-big.png' %>',
+				starOn  : '<%= image_url 'star-on1.png' %>',
+				targetKeep : true,
+				hints : null,
+				target : '#classification_rating'
+			});
+			off = '<%= image_url 'star-off-big.png' %>';
+			$('#sentiment_smiley').raty({
+				starOff : '<%= image_url 'star-off-big.png' %>',
+				starOn  : '<%= image_url 'star-on1.png' %>',
+				iconRange: [
+				{ range: 1, on: '<%= image_url 'sad-emoticon.png' %>', off: off },
+				{ range: 2, on: '<%= image_url 'confused.png' %>', off: off },
+				{ range: 3, on: '<%= image_url 'happy.jpg' %>', off: off },
+				],
+				number: 3,
+				targetKeep : true,
+				single: true ,
+				hints: ['Negative','Ambiguous','Positive'],
+				target : '#classification_sentiment'
+			});
+
+			$('#classification_lyric_link').hide();
+
+			function get_lyric(){
+				if(given_up)
+					$('#classification_lyric_link').fadeIn();
+				song = $('#classification_song_name').val();
+				artist = $('#classification_artist').val();
+				lyric_link = $('#classification_lyric_link').val();
+				console.log('Getting lyric'+lyric_link);
+				data = {song: song, artist: artist, link: lyric_link};
+				if( song.length > 0 && artist.length > 0 && correct_song && !link_sucess){
+					$.ajax({url: "/lyrics_get",data: data, success: function(result){
+						// $("#div1").html(result);
+						console.log(result);
+						$('#classification_lyric_link').val(result.link);
+						if(result.success == false){
+							$('#classification_lyric_link').fadeIn();
+							$('#classification_lyric_link').val('');
+							link_sucess = false;
+						}
+						else{
+							link_sucess=true;
+						}
+					},failure: function(result){
+						$('#classification_lyric_link').fadeIn();
+						$('#classification_lyric_link').val('');
+						link_sucess = false;
+						console.log(result);
+					}});
+				}
+			}
+
+			var actual_artist = "<%= @song.artist.name %>";
+			var actual_song = "<%= @song.name %>";
+			var clock;
+
+			function check(){
+				get_lyric();
+				if(!given_up){
+					var artist = $('#classification_artist').val();
+					var song = $('#classification_song_name').val();
+					var message = "The";
+					var artist_correct = false;
+					var song_correct = false;
+					if(artist.toUpperCase() == actual_artist.toUpperCase())
+						artist_correct = true
+					else
+						artist_correct = false
+					if(song.toUpperCase() == actual_song.toUpperCase())
+						song_correct = true;
+					else
+						song_correct = false;
+
+					if(!artist_correct)
+						message = message+" artist is";
+					if(!song_correct){
+						if(!artist_correct)
+							message = message+" and song are";
+						else
+							message = message+" song is";
+					}
+					message = message+" incorrect";
+
+					alert(message);
+				}
+				else if($('#classification_sentiment').val().length === 0){
+					alert("Please choose a mood.");
+				}
+				else if(!link_sucess){
+					alert("The lyric link is not supported. Use a valid azlyrics.com link");
+				}
+
+
+			}
+
+			var allow_submit = false;
+
+			$('#new_classification').submit(function(e){
+				check_fields();
+				console.log('Trying to Submit');
+				if(!allow_submit && !link_sucess){
+					check();
+					e.preventDefault();
+					return false;
+				}
+				var time  = clock.getTime(); 
+				$.cookie("time", time);
+				allow_submit=true;
+				var input = $("<input>")
+					.attr("type", "hidden")
+					.attr("name", "give_up").val(given_up);
+				$('#new_classification').append($(input));
+
+				var form = this;
+				e.preventDefault();
+			    setTimeout(function () {
+			        form.submit();
+			    }, 1000);
+			});
+
+			$('#give_up').click(function(){
+				$('#classification_song_name').val(actual_song);
+				$('#classification_artist').val(actual_artist);
+				given_up=true;
+				correct_song = true;
+				get_lyric();
+			});
+
+			$('#sentiment_smiley img').click(function(){
+				if($('#classification_lyric_link').val().length > 0){
+					allow_submit = true;
+					$('#new_classification').submit();
+					allow_submit = false;
+				}
+			});
+
+			function check_fields(){
+				artist_field = $('#classification_artist');
+				song_field = $('#classification_song_name');
+				lyric_field = $('#classification_lyric_link');
+				$.each([artist_field,song_field,lyric_field], function(i,v){
+
+				});
+			}
+
+			$("input").blur(get_lyric);
+			$("input").focus(get_lyric);
+			var time = $.cookie("time");
+			var score = <%= @score %>;
+			console.log(time);
+			if(time==null || time == 0)
+				time = 60;
+			// if(score==null)
+				// score = 0;
+			$('#score .content').html(score);
+
+			$(window).bind('beforeunload',function(){
+				var time  = clock.getTime(); 
+				$.cookie("time", time);
+				$.cookie("score", score);
+				console.log(allow_submit);
+				if(!allow_submit)
+					return 'The timer would not reset. Are you sure you want to leave?';
+			});
+
+			var playing = false;
+			function play_start(){
+				if(playing == false){
+					console.log('Started Playing')
+					playing = true;
+					clock = $('#clock').FlipClock({
+						autoStart:false,
+						stop: function() {
+							console.log('Stopped');
+							$.removeCookie("time");
+							if(clock.getTime()==0){
+								var input = $("<input>")
+					               .attr("type", "hidden")
+					               .attr("name", "score").val(score);
+								$('#new_classification').append($(input));
+								allow_submit = true;
+								$('#new_classification').submit();
+							}
+						}
+					});
+					clock.setCountdown(true);
+
+					clock.setTime(time);
+					clock.start();
+
+				}
+			}
+
+		</script>
+	</div>
+</div>

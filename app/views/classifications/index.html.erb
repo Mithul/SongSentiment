@@ -1,0 +1,35 @@
+<h1>Listing classifications</h1>
+
+<table class="table table-hover table-responsive">
+  <thead>
+    <tr>
+      <th>Song name</th>
+      <th>Artist</th>
+      <th>Rating</th>
+      <th>User</th>
+      <th>Mood</th>
+      <th>Genre</th>
+      <th colspan="3"></th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% @classifications.each do |classification| %>
+      <tr>
+        <td><%= classification.song_name %></td>
+        <td><%= classification.artist %></td>
+        <td><%= classification.rating %></td>
+        <td><%= classification.user %></td>
+        <td><%= classification.mood %></td>
+        <td><%= classification.genre %></td>
+        <td><%= link_to 'Show', classification %></td>
+        <td><%= link_to 'Edit', edit_classification_path(classification) %></td>
+        <td><%= link_to 'Destroy', classification, method: :delete, data: { confirm: 'Are you sure?' } %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<br>
+
+<%= link_to 'New Classification', new_classification_path %>

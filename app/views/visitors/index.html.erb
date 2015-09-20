@@ -1,0 +1,27 @@
+<h1>Welcome</h1><!-- 
+<p><%= link_to 'Users:', users_path %> <%= User.count %> registered</p>
+ -->
+
+ <h2>Instructions</h2>
+ <ol>
+ 	<li>A random song will be chosen and played to you.</li>
+ 	<li>You must guess the artist of the song and the name of the song and enter them in the respective fields.</li>
+ 	<li>There will be a timer that will notify you of the remaining time till the end of the game.</li>
+ 	<li>The score below the timer shows the current score obtained by you.
+ 		<ul>
+ 			<li>50 points will be awarded for correctly guessing the song and the artist.</li>
+ 			<li>10 points will be awarded if the give up button is pressed.</li>
+ 			<li>10 points will be awarded if a genre is mentioned.</li>
+ 		</ul>
+ 	</li>
+ 	<li>The app will try to get a valid lyric link once the artist and song names are entered. However if it is unable to find a valid link. The user must provide a valid azlyrics.com link to the song lyrics. The game will not proceed unless a valid link is provided.</li>
+ 	<li>There will be no submission if a mood is not selected. The mood is selected by clicking one of the three stars that best depicts the mood of the song.
+ 		<ul>
+ 			<li>'<%= image_tag(image_url('sad-emoticon.png'),:size => '40x40') %>: sad</li>
+			<li><%= image_tag(image_url('confused.png'),:size => '40x40') %>: ambiguous</li>
+			<li><%= image_tag(image_url('happy.jpg'),:size => '40x40') %>: happy</li>
+ 		</ul>
+ 	</li>
+ 	<li>You may skip a song by simply refreshing a page. However there will be no change in score and the timer will not reset.</li>
+
+ </ol>
